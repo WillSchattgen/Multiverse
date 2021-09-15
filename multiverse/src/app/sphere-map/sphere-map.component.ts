@@ -166,19 +166,19 @@ export class SphereMapComponent implements OnInit {
     this.torus.rotation.y += 0.01;
     this.torus.rotation.z += 0.01;
     if(this.moveTarget){
-      if(Math.abs(this.targetFinal.y - this.controls.target.x) < 2){
+      if(Math.abs(this.targetFinal.x - this.controls.target.x) < 1){
         this.xTargetDone;
       } else {
         this.controls.target.x = this.controls.target.x + (this.targetMoveDirection.x * 2);
         console.log("X: " + this.controls.target.x);
       }
-      if(Math.abs(this.targetFinal.y - this.controls.target.y) < 2){
+      if(Math.abs(this.targetFinal.y - this.controls.target.y) < 1){
         this.yTargetDone = true;
       } else {
         this.controls.target.y = this.controls.target.y + (this.targetMoveDirection.y * 2);
         console.log("Y: " + this.controls.target.y);
       }
-      if(Math.abs(this.targetFinal.z - this.controls.target.z) < 2){
+      if(Math.abs(this.targetFinal.z - this.controls.target.z) < 1){
         this.zTargetDone = true;
       } else {
         this.controls.target.z = this.controls.target.z + (this.targetMoveDirection.z * 2);
@@ -186,6 +186,7 @@ export class SphereMapComponent implements OnInit {
       }
 
       if(this.xDone, this.yDone, this.zDone){
+        console.log("Done: " + this.targetFinal.x + ", " + this.targetFinal.y + ", " + this.targetFinal.z);
         this.moveTarget = false;
         this.controls.target = this.targetFinal;
       }
@@ -564,11 +565,11 @@ export class SphereMapComponent implements OnInit {
       this.zDone = false;
       //this.camera.position.set(object3d.position.x + 2, object3d.position.y + 2, object3d.position.z + 2);
       this.moveCameraFinal = new Vector3(object3d.position.x, object3d.position.y, object3d.position.z);
-      this.moveCameraDirection = new Vector3((object3d.position.x - this.camera.position.x)/100, (object3d.position.y - this.camera.position.y)/100, (object3d.position.z - this.camera.position.z)/100);
+      this.moveCameraDirection = new Vector3((object3d.position.x - this.camera.position.x)/200, (object3d.position.y - this.camera.position.y)/200, (object3d.position.z - this.camera.position.z)/200);
       //this.camera.lookAt(object3d.position.x, object3d.position.y, object3d.position.z);
       //this.controls.target.set(object3d.position.x, object3d.position.y, object3d.position.z);
       this.targetFinal = new THREE.Vector3(object3d.position.x, object3d.position.y, object3d.position.z);
-      this.targetMoveDirection = new Vector3((object3d.position.x - this.controls.target.x)/100, (object3d.position.y - this.controls.target.y)/100, (object3d.position.z - this.controls.target.z)/100);
+      this.targetMoveDirection = new Vector3((object3d.position.x - this.controls.target.x)/200, (object3d.position.y - this.controls.target.y)/200, (object3d.position.z - this.controls.target.z)/200);
       this.moveCamera = true;
       this.moveTarget = true;
       this.selectSphere(object3d);
