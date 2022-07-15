@@ -2,3 +2,7 @@
 body {
     background-color: dimgray;
 }
+
+.center {
+    text-align: center;
+}

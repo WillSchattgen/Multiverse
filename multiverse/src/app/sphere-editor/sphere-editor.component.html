@@ -1,0 +1,81 @@
+<div class="topLeft">
+    <div class="editTools">
+        <div class="stars">
+            <div (click)="toggleWellCollapse()">
+                <i *ngIf="!gravityWellCollapse" class="fa fa-angle-down"></i>
+                <i *ngIf="gravityWellCollapse" class="fa fa-angle-up"></i>
+                Gravity Well
+            </div>
+            <div [ngClass]="{'collapse' : gravityWellCollapse, 'open' : !gravityWellCollapse}">
+                <div class="star" *ngFor='let body of crystalSphere.stars; let i = index'>
+                    <div (click)="toggleWellBodyCollapse(i)">
+                        <i *ngIf="!body.collapse" class="fa fa-angle-down"></i>
+                        <i *ngIf="body.collapse" class="fa fa-angle-up"></i>
+                        {{body.name}}
+                    </div>
+                    <div [ngClass]="{'collapse' : body.collapse, 'open' : !body.collapse}">
+                        <label>Size: </label>
+                        <input type="text" class="radiusInput" (change)='updateMap()' [(ngModel)]='crystalSphere.stars[i].meshRadius'/>
+                        <input type="range" min="2" max="{{50/crystalSphere.stars.length}}" (mousemove)='updateMap()' [(ngModel)]='crystalSphere.stars[i].meshRadius' class="slider radiusSlider" id="starRadiusSlider"/>
+                        <br/>
+                        <label>Color: </label>
+                        <input type="color" (change)='updateMap()' [(ngModel)]="body.color"/>
+                        <!--<label>Position: </label>
+                        <input type="text" class="radiusInput" (change)='updateMap()' [(ngModel)]='body.spacialRadius'/>
+                        <input type="range" min="-20" max="0" (mousemove)='updateMap()' [(ngModel)]='body.spacialRadius' class="slider radiusSlider" id="starRadiusSlider"/>-->
+                    </div>
+                </div>
+                <div>
+                    <button (click)='addStar()'><b>+</b> Object</button>
+                </div>
+            </div>
+        </div>
+        <div class = "orbits" *ngFor='let orbit of crystalSphere.orbits; let j = index'>
+            <div class="orbitName" (click)="toggleOrbitCollapse(j)">
+                <i *ngIf="!orbit.collapse" class="fa fa-angle-down"></i>
+                <i *ngIf="orbit.collapse" class="fa fa-angle-up"></i>
+                Orbit {{j+1}}
+            </div>
+            <div [ngClass]="{'collapse' : orbit.collapse, 'open' : !orbit.collapse}">
+                <label>Size: </label>
+                <input type="text" class="radiusInput" (change)='updateMapObject(-1, j, -1)' [(ngModel)]='orbit.radiusOffset'/>
+                <input type="range" min="{{orbit.radiusOffsetMin}}" max="{{orbit.radiusOffsetMax}}" (mousemove)='updateMapObject(-1, j, -1)' [(ngModel)]='orbit.radiusOffset' class="slider radiusSlider" id="starRadiusSlider"/>
+                <label>Position: </label>
+                <input type="text" class="radiusInput" (change)='updateMapObject(-1, j, -1)' [(ngModel)]='orbit.anglePercentage'/>
+                <input type="range" min="0" max="100" (mousemove)='updateMapObject(-1, j, -1)' [(ngModel)]='orbit.anglePercentage' class="slider radiusSlider" id="starRadiusSlider"/>
+                <br/>
+                <div class="body" *ngFor='let body of orbit.orbitalBodies; let k = index'>
+                    <div class="bodyName" (click)="toggleBodyCollapse(j, k)">
+                        <i *ngIf="!body.collapse" class="fa fa-angle-down"></i>
+                        <i *ngIf="body.collapse" class="fa fa-angle-up"></i>
+                        {{body.name}}
+                    </div>
+                    <div [ngClass]="{'collapse' : body.collapse, 'open' : !body.collapse}">
+                        <label for="bodyRadiusSlider">Size: </label>
+                        <input type="text" class="radiusInput" (change)='updateMapObject(-1, j, k)' [(ngModel)]='body.meshRadius'/>
+                        <input type="range" min="1" max="10" (mousemove)='updateMapObject(-1, j, k)' [(ngModel)]='body.meshRadius' class="slider radiusSlider" id="bodyRadiusSlider"/>
+                        <br/>
+                        <label>Color: </label>
+                        <input type="color" (change)='updateMapObject(-1, j, k)' [(ngModel)]="body.color"/>
+                        <label>Type: </label>
+                        <select [(ngModel)]='body.type' (change)='updateMapObject(-1, j, k)'>
+                            <option value='gaseous'>Gaseous</option>
+                            <option value='terresterial'>Terresterial</option>
+                            <option value='aqueous'>Aqueous</option>
+                            <option value='stellar'>Stellar</option>
+                            <option value='belt'>Belt</option>
+                            <option value='ring'>Ring</option>
+                            <option value='other'>Other</option>
+                        </select>
+                    </div>
+                </div>
+                <button (click)='addBody(orbit.orbitNumber)'><b>+</b> Object</button>
+            </div>
+        </div>
+        <div>
+            <button (click)='addOrbit()'><b>+</b> Orbit</button>
+        </div>
+    </div>
+</div>
+
+<div id="mapFrame" class="lowerHalf" (window:resize)="resize($event)"></div>

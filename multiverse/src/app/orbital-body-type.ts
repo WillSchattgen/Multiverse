@@ -4,5 +4,6 @@ export enum OrbitalBodyType {
     aqueous,
     stellar,
     belt,
+    ring,
     other
 }

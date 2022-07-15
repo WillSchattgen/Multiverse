@@ -1,0 +1,24 @@
+<h1>Archive</h1>
+<div class="archiveType" *ngFor="let book of books; let i = index" (click)='view(book)'>
+    {{book.name}}
+</div>
+
+<div *ngIf='showModal' id="myModal" class="modal-show">
+    <div class="modal-content" >
+      <div class="closeButton" (click)="toggleModal()">
+        <i class="closeX fa fa-close"></i>
+      </div>
+      <div class="recordInfo">
+        <div class="center" *ngIf='selectedBook != null'>
+            <h2>{{selectedBook.name}}</h2>
+            <div class="book">
+                <a class="fa fa-angle-left"></a>
+                <div class="page">
+                    page
+                </div>
+                <a class="fa fa-angle-right"></a>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>

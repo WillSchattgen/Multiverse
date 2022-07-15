@@ -21,4 +21,24 @@ export class WelcomeComponent implements OnInit {
     this.router.navigate(['/shardgate']);
   }
 
+  toSphereEditor(){
+    this.router.navigate(['/sphere-editor']);
+  }
+
+  toMaze(){
+    this.router.navigate(['/maze']);
+  }
+
+  toArchive(){
+    this.router.navigate(['/archive']);
+  }
+
+  toCampaign(){
+    this.router.navigate(['/campaign']);
+  }
+
+  toCampaignMap(){
+    this.router.navigate(['/campaign-map']);
+  }
+
 }

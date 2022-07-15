@@ -1,0 +1,105 @@
+.lowerHalf{
+    position: absolute;
+    top:50%;
+}
+
+.topLeft{
+    position: absolute;
+    top:0%;
+    right:50%;
+    height: 50%;
+    width: 50%;
+    overflow: auto;
+}
+
+.editTools {
+    padding: 5px;
+}
+
+/* .stars{
+    padding: 5px;
+    border-style: solid;
+    border-radius: 5px;
+    border-width: 2px;
+    border-color: black;
+    background-color: goldenrod;
+}
+
+.star{
+    padding: 5px;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 5px;
+    border-color: black;
+    background-color: darkgoldenrod;
+} */
+
+.stars{
+    color: white;
+    padding: 5px;
+    border-style: solid;
+    border-radius: 5px;
+    border-width: 2px;
+    border-color: black;
+    background-color: rgb(112, 65, 134);
+}
+
+.star{
+    padding: 5px;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 5px;
+    border-color: black;
+    background-color: rgb(59, 21, 77);
+}
+
+.orbits{
+    padding: 5px;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 5px;
+    border-color: black;
+    background-color: darkseagreen;
+}
+
+.body{
+    padding: 5px;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 5px;
+    border-color: black;
+    background-color: darkolivegreen;
+}
+
+.radiusInput{
+    width: 3em;
+    margin-right: 1em;
+}
+
+.radiusSlider{
+    width: 5em;
+}
+
+.collapse {
+    display: none;
+}
+
+.open {
+    display: block;
+}
+
+.orbitName {
+    background-color: darkseagreen;
+}
+
+.orbitName:hover {
+    background-color: rgb(119, 156, 119);
+}
+
+.bodyName {
+    background-color: darkolivegreen;
+}
+
+.bodyName:hover {
+    background-color: rgb(72, 90, 40);
+}

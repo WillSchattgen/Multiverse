@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { Router } from '@angular/router';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import {BackSide, MathUtils} from 'three';
+import {BackSide, DoubleSide, MathUtils} from 'three';
 
 @Component({
   selector: 'app-shardgate',
@@ -212,10 +212,10 @@ export class ShardgateComponent implements OnInit {
   createOuterCrystals(i: number): THREE.Mesh{
     var total = 16
 
-    // var texture = new THREE.TextureLoader().load( "../../assets/shardgate/" + (i + 1).toString() + ".webp" );
-    // texture.wrapS = THREE.RepeatWrapping;
-    // texture.wrapT = THREE.RepeatWrapping;
-    // texture.repeat.set( 1, 1);
+    var texture = new THREE.TextureLoader().load( "../../assets/shardgate/" + (i).toString() + ".png" );
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set( 4, 2);
 
     var theta = Math.PI * 2;
     var r = 16;
@@ -234,7 +234,8 @@ export class ShardgateComponent implements OnInit {
     this.scene.add(cubeLight);
 
     var shardGeometry = new THREE.OctahedronGeometry(1.5, 0);
-    var shardMaterial = new THREE.MeshStandardMaterial({color: 0xFFFFFF});
+    var shardMaterial = new THREE.MeshStandardMaterial({map: texture, alphaTest: 0.5});
+    shardMaterial.side = DoubleSide;
     var shard = new THREE.Mesh(shardGeometry, shardMaterial);
     shard.position.x = x;
     shard.position.y = y;
@@ -463,8 +464,8 @@ export class ShardgateComponent implements OnInit {
     this.outerLights[15].position.z = r * Math.sin((position + (this.spinCount/this.speed)));
 
     this.innerCrystals.forEach(element => {
-      element.position.x = .5 * r * Math.cos((innerPosition + (this.spinCount/this.speed)));
-      element.position.z = .5 * r * Math.sin((innerPosition + (this.spinCount/this.speed)));
+      element.position.x = .5 * r * Math.cos((innerPosition - (this.spinCount/this.speed)));
+      element.position.z = .5 * r * Math.sin((innerPosition - (this.spinCount/this.speed)));
       element.children[0].position.x = element.position.x;
       element.children[0].position.z = element.position.z;
       innerPosition += this.positionIncriment * 2; 
@@ -746,7 +747,7 @@ export class ShardgateComponent implements OnInit {
 
     //var material = new THREE.MeshStandardMaterial({color: 0xFFFFFF});
     this.horizon = new THREE.Mesh(geometry, material);
-    this.horizon.position.y = 2;
+    this.horizon.position.y = 0;
     this.horizon.rotation.x = Math.PI * -.5;
     this.scene.add(this.horizon);
   }

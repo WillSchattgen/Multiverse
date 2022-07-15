@@ -9,12 +9,12 @@ import { OrbitalBody } from '../orbital-body';
 import { MappingService } from '../mapping.service';
 
 @Component({
-  selector: 'app-sphere-map',
-  templateUrl: './sphere-map.component.html',
-  styleUrls: ['./sphere-map.component.css'],
+  selector: 'app-campaign-map',
+  templateUrl: './campaign-map.component.html',
+  styleUrls: ['./campaign-map.component.css'],
   providers: [MappingService]
 })
-export class SphereMapComponent implements OnInit {
+export class CampaignMapComponent implements OnInit {
 
   vertexShader = 'uniform vec2 uvScale;' +
   'varying vec2 vUv;' +
@@ -112,6 +112,8 @@ export class SphereMapComponent implements OnInit {
 
   activeCrystalSphere = new CrystalSphere();
 
+  orbitalBodies = new Map();
+
   constructor(private router: Router, private mappingService: MappingService) { }
 
   ngOnInit(): void {
@@ -142,15 +144,58 @@ export class SphereMapComponent implements OnInit {
     this.scene.add(this.ambientLight);
     //this.scene.add(this.gridHelper);
 
-    for(var i = 0;i<2000;i++){
-       this.addSphere();
-    }
+    //commented out for api update this is good code
+    // for(var i = 0;i<2000;i++){
+    //   this.addSphere();
+    // }
 
-    //this.scene.background = new THREE.Color(0xFF00FF);
-    //this.addSkyBox();
-    this.createCurrents();
-    this.updateActiveCrystalSphere();
-    this.animate();
+    // var sphereList: string | any[] = [];
+    // this.mappingService.getAllSpheres().subscribe(
+    //   value => {
+    //     console.log(value);
+    //     sphereList = value.sphereList;
+    //     console.log(sphereList);
+    //     console.log(sphereList.length);
+    //     for(var i = 0;i<sphereList.length;i++){
+    //       this.addSpheresFromApi(sphereList[i]);
+    //     }
+    //     //this.scene.background = new THREE.Color(0xFF00FF);
+    //     //this.addSkyBox();
+    //     this.createCurrents();
+    //     this.updateActiveCrystalSphere();
+    //     this.animate();
+    //   },
+    //   err => {
+    //     console.log(err);
+    //     console.log('oops');
+    //   }
+    // );
+
+    //spheres and bodies
+    var sphereAndBodyList: string | any[] = [];
+    this.mappingService.getAllSpheresAndBodies().subscribe(
+      value => {
+        console.log(value);
+        sphereAndBodyList = value.sphereList;
+        console.log(sphereAndBodyList);
+        console.log(sphereAndBodyList.length);
+        for(var i = 0;i<sphereAndBodyList.length;i++){
+          this.addSpheresAndBodiesFromApi(sphereAndBodyList[i].crystalSphere, sphereAndBodyList[i].orbitalBodies);
+          console.log(i);
+        }
+    
+        //this.scene.background = new THREE.Color(0xFF00FF);
+        //this.addSkyBox();
+        this.createCurrents();
+        this.updateActiveCrystalSphere();
+        this.animate();
+      },
+      err => {
+        console.log(err);
+        console.log('oops');
+      }
+    );
+
   }
 
   updateActiveCrystalSphere(){
@@ -270,10 +315,6 @@ export class SphereMapComponent implements OnInit {
     var y = r * Math.sin(phi) * Math.sin(theta);
     var z = r * Math.cos(phi);
 
-    console.log('x' + x);
-    console.log('y' + y);
-    console.log('z' + z);
-
     // if(this.lastStar != null){
     //   this.addCurrent([x,y,z], this.lastStar);
     // }
@@ -285,8 +326,85 @@ export class SphereMapComponent implements OnInit {
     this.stars.push(sphere);
   }
 
-  addSpheresFromApi(){
+  addSpheresFromApi(savedSphere: CrystalSphere){
+    console.log("Adding saved sphere");
+    var geometry = new THREE.SphereGeometry(.5, 24, 24);
+    var material = new THREE.MeshStandardMaterial({color: 0xffffff});
+    var sphere = new THREE.Mesh(geometry, material);
+    sphere.position.set(savedSphere.xpos,savedSphere.ypos,savedSphere.zpos);
+    if(savedSphere.name != ''){
+      sphere.name = 'S\%'+ savedSphere.name;
+    }
+    else {
+      sphere.name = 'S\%'+ savedSphere.crystal_sphere_id;
+    }
+    this.scene.add(sphere);
+    this.stars.push(sphere);
+  }
 
+  addSpheresAndBodiesFromApi(savedSphere: CrystalSphere, savedBodies: OrbitalBody[]){
+    console.log("Adding saved sphere");
+    var geometry = new THREE.SphereGeometry(.5, 24, 24);
+    var material = new THREE.MeshStandardMaterial({color: 0xffffff});
+    var sphere = new THREE.Mesh(geometry, material);
+    sphere.position.set(savedSphere.xpos,savedSphere.ypos,savedSphere.zpos);
+    if(savedSphere.name != ''){
+      sphere.name = 'S\%'+ savedSphere.name;
+    }
+    else {
+      sphere.name = 'S\%'+ savedSphere.crystal_sphere_id;
+    }
+
+    var center = sphere.position;
+    //add bodies to mesh
+    this.orbitalBodies.set(savedSphere.crystal_sphere_id, []);
+
+    if(savedBodies != null && savedBodies.length > 0){
+      console.log(savedBodies[0].orbital_offset);
+      console.log('SavedBodies length: ' + savedBodies.length);
+      for(var i = 0; i < savedBodies.length; i++){
+        
+        var theta = 0;
+        var r = 0;
+        var x = 0;
+        var y = 0;
+        var z = 0;
+
+        if(savedBodies[i].type == 3) {
+          theta = savedBodies[i].orbital_offset;
+          r = savedBodies[i].spacialRadius;
+          x = (r * Math.cos(theta)) + center.x;
+          y = center.y;
+          z = (r * Math.sin(theta)) + center.z;
+        } else {
+          theta = Math.PI * 2 * MathUtils.randFloat(0,1);
+          console.log(savedBodies[i]);
+          r = savedBodies[i].spacialRadius;
+          x = (r * Math.cos(theta)) + center.x;
+          y = center.y;
+          z = (r * Math.sin(theta)) + center.z;
+        }
+
+        var sphereGeometry = new THREE.SphereGeometry(savedBodies[i].meshRadius, 24, 24);
+        var material = new THREE.MeshStandardMaterial({color: 0xFFFF00});
+        var body = new THREE.Mesh(sphereGeometry, material);
+        console.log('Position X: ' + x);
+        body.position.x = x;
+        body.position.y = y;
+        body.position.z = z;
+        body.name = 'B\%' + i;
+        //sphere.children.push(body);
+        this.scene.add(body);
+        console.log(body);
+        var tempList = this.orbitalBodies.get(savedSphere.crystal_sphere_id);
+        tempList.push(body);
+
+        console.log('Added body at center: ' + center.x + ',' + center.y + ',' + center.z);
+        this.orbitalBodies.set(savedSphere.crystal_sphere_id, tempList);
+      }
+    }
+    this.scene.add(sphere);
+    this.stars.push(sphere);
   }
 
   addCurrent(a:number[], b:number[], destination:THREE.Mesh) {
@@ -447,6 +565,7 @@ export class SphereMapComponent implements OnInit {
   }
 
   createCurrents() {
+    console.log('stars length:' + this.stars.length);
     for(var i = 0; i < this.stars.length; i++){
       if(Math.abs(this.selectedSphere.position.x - this.stars[i].position.x) < 50
       && Math.abs(this.selectedSphere.position.y - this.stars[i].position.y) < 50
@@ -472,34 +591,177 @@ export class SphereMapComponent implements OnInit {
   addTower(): THREE.Mesh{
     var geometry = new THREE.SphereGeometry(.5, 24, 24);
     var material = new THREE.MeshStandardMaterial({color: 0x333333});
-    var tower = new THREE.Mesh(geometry,material);
+    var realmSphere = new THREE.Mesh(geometry,material);
+    realmSphere.position.set(0, 0, 0);
+    realmSphere.name = "S\%Realm Space";
+    this.selectedSphere = realmSphere;
+
+    var center = realmSphere.position;
+    //var stars = MathUtils.randInt(1, 3);
+    //var orbits = MathUtils.randInt(1, 9);
     
-    tower.position.set(0, 0, 0);
-    // this.domEvents.addEventListener(tower, 'click', (event: any) =>{
-    //   console.log("test Click");
-    // });
-    tower.name = "S\%tower";
-    this.scene.add(tower);
-    this.selectSphere(tower);
-    this.stars.push(tower);
-    // var geometry2 = new THREE.CylinderGeometry(1.25, 1.25, 4, 24, 24, false, 10, 10);
-    // var material2 = new THREE.MeshStandardMaterial({color: 0xFFFFFF});
-    // var tower2 = new THREE.Mesh(geometry2,material2);
-    // tower2.position.set(10, 0, 0);
-    // this.scene.add(tower2);
+    this.scene.add(realmSphere);
+    //this.selectSphere(realmSphere);
+    realmSphere.material = new THREE.MeshStandardMaterial({color: 0x000000});
+    realmSphere.material.side = BackSide;
+    realmSphere.name = "A" + realmSphere.name;
 
-    // var geometry3 = new THREE.CylinderGeometry(1.25, 1.25, 4, 24, 24, false, 10, 10);
-    // var material3 = new THREE.MeshStandardMaterial({color: 0xFFFF00});
-    // var tower3 = new THREE.Mesh(geometry3,material3);
-    // tower3.position.set(0, 0, 10);
-    // this.scene.add(tower3);
+    this.stars.push(realmSphere);
 
-    // var geometry4 = new THREE.CylinderGeometry(1.25, 1.25, 4, 24, 24, false, 10, 10);
-    // var material4 = new THREE.MeshStandardMaterial({color: 0x00FF00});
-    // var tower4 = new THREE.Mesh(geometry4,material4);
-    // tower4.position.set(0, 10, 0);
-    // this.scene.add(tower4);
-    return tower;
+    var center = realmSphere.position;
+
+    var starx = center.x;
+    var stary = center.y;
+    var starz = center.z;
+
+    var geometry = new THREE.SphereGeometry(.05, 24, 24);
+    var material = new THREE.MeshStandardMaterial({color: 0xFCF030});
+    var star = new THREE.Mesh(geometry, material);
+    //var star = new THREE.PointLight(colors[MathUtils.randInt(0, colors.length)]);
+    star.position.x = starx;
+    star.position.y = stary;
+    star.position.z = starz;
+    star.name = 'G\%' + 0;
+    this.scene.add(star);
+    this.selectedSphere.children.push(star);
+
+    //planet1
+    var theta = Math.PI * 2 * MathUtils.randFloat(0,1);
+    var r = .08
+    var x = (r * Math.cos(theta)) + center.x;
+    var y = center.y;
+    var z = (r * Math.sin(theta)) + center.z;
+
+    var geometry = new THREE.SphereGeometry(.005, 24, 24);
+    var material = new THREE.MeshStandardMaterial({color: 0xC0FFEE});
+    var body = new THREE.Mesh(geometry, material);
+    body.position.x = x;
+    body.position.y = y;
+    body.position.z = z;
+    body.name = 'B\%' + 0;
+    this.scene.add(body);
+    this.selectedSphere.children.push(body);
+
+    //planet2
+    var theta = Math.PI * 2 * MathUtils.randFloat(0,1);
+    var r = .1
+    var x = (r * Math.cos(theta)) + center.x;
+    var y = center.y;
+    var z = (r * Math.sin(theta)) + center.z;
+
+    var geometry = new THREE.SphereGeometry(.005, 24, 24);
+    var material = new THREE.MeshStandardMaterial({color: 0x8fce00});
+    var body = new THREE.Mesh(geometry, material);
+    body.position.x = x;
+    body.position.y = y;
+    body.position.z = z;
+    body.name = 'B\%' + 1;
+    this.scene.add(body);
+    this.selectedSphere.children.push(body);
+
+    //planet3
+    var theta = Math.PI * 2 * MathUtils.randFloat(0,1);
+    var r = .15
+    var x = (r * Math.cos(theta)) + center.x;
+    var y = center.y;
+    var z = (r * Math.sin(theta)) + center.z;
+
+    var geometry = new THREE.SphereGeometry(.005, 24, 24);
+    var material = new THREE.MeshStandardMaterial({color: 0xFFB90F});
+    var body = new THREE.Mesh(geometry, material);
+    body.position.x = x;
+    body.position.y = y;
+    body.position.z = z;
+    body.name = 'B\%' + 2;
+    this.scene.add(body);
+    this.selectedSphere.children.push(body);
+
+    //planet4
+    var theta = Math.PI * 2 * MathUtils.randFloat(0,1);
+    var r = .18
+    var x = (r * Math.cos(theta)) + center.x;
+    var y = center.y;
+    var z = (r * Math.sin(theta)) + center.z;
+
+    var geometry = new THREE.SphereGeometry(.005, 24, 24);
+    var material = new THREE.MeshStandardMaterial({color: 0xC80815});
+    var body = new THREE.Mesh(geometry, material);
+    body.position.x = x;
+    body.position.y = y;
+    body.position.z = z;
+    body.name = 'B\%' + 3;
+    this.scene.add(body);
+    this.selectedSphere.children.push(body);
+
+    //planet5
+    var theta = Math.PI * 2 * MathUtils.randFloat(0,1);
+    var r = .2
+    var x = (r * Math.cos(theta)) + center.x;
+    var y = center.y;
+    var z = (r * Math.sin(theta)) + center.z;
+
+    var geometry = new THREE.SphereGeometry(.005, 24, 24);
+    var material = new THREE.MeshStandardMaterial({color: 0x177245});
+    var body = new THREE.Mesh(geometry, material);
+    body.position.x = x;
+    body.position.y = y;
+    body.position.z = z;
+    body.name = 'B\%' + 4;
+    this.scene.add(body);
+    this.selectedSphere.children.push(body);
+
+    //planet6
+    var theta = Math.PI * 2 * MathUtils.randFloat(0,1);
+    var r = .3
+    var x = (r * Math.cos(theta)) + center.x;
+    var y = center.y;
+    var z = (r * Math.sin(theta)) + center.z;
+
+    var geometry = new THREE.SphereGeometry(.005, 24, 24);
+    var material = new THREE.MeshStandardMaterial({color: 0x00b2ee});
+    var body = new THREE.Mesh(geometry, material);
+    body.position.x = x;
+    body.position.y = y;
+    body.position.z = z;
+    body.name = 'B\%' + 5;
+    this.scene.add(body);
+    this.selectedSphere.children.push(body);
+
+    //planet7
+    var theta = Math.PI * 2 * MathUtils.randFloat(0,1);
+    var r = .32
+    var x = (r * Math.cos(theta)) + center.x;
+    var y = center.y;
+    var z = (r * Math.sin(theta)) + center.z;
+
+    var geometry = new THREE.SphereGeometry(.005, 24, 24);
+    var material = new THREE.MeshStandardMaterial({color: 0xFFB90F});
+    var body = new THREE.Mesh(geometry, material);
+    body.position.x = x;
+    body.position.y = y;
+    body.position.z = z;
+    body.name = 'B\%' + 6;
+    this.scene.add(body);
+    this.selectedSphere.children.push(body);
+
+    //planet7
+    var theta = Math.PI * 2 * MathUtils.randFloat(0,1);
+    var r = .4
+    var x = (r * Math.cos(theta)) + center.x;
+    var y = center.y;
+    var z = (r * Math.sin(theta)) + center.z;
+
+    var geometry = new THREE.SphereGeometry(.005, 24, 24);
+    var material = new THREE.MeshStandardMaterial({color: 0xC80815});
+    var body = new THREE.Mesh(geometry, material);
+    body.position.x = x;
+    body.position.y = y;
+    body.position.z = z;
+    body.name = 'B\%' + 7;
+    this.scene.add(body);
+    this.selectedSphere.children.push(body);
+
+    return realmSphere;
   }
 
   // onClickCanvas(event:any) {
@@ -639,7 +901,7 @@ export class SphereMapComponent implements OnInit {
       width	: (element === window) ? window.innerWidth	: element.offsetWidth,
       height	: (element === window) ? window.innerHeight	: element.offsetHeight
     };
-    console.log('x :' + (+((event.pageX - elPosition.x) / elDimension.width ) * 2 - 1));
+    console.log('x :' + (+((event.pageX - elPosition.x) / elDimension.width) * 2 - 1));
     console.log("y :" + (-((event.pageY - elPosition.y) / elDimension.height) * 2 + 1));
     return [(+((event.pageX - elPosition.x) / elDimension.width ) * 2 - 1), (-((event.pageY - elPosition.y) / elDimension.height) * 2 + 1)];
   }
@@ -650,11 +912,16 @@ export class SphereMapComponent implements OnInit {
       console.log(this.selectedSphere.type);
       this.createCurrents();
       //sphere.geometry = new THREE.SphereGeometry(.5, 24, 24, 0, Math.PI * 2, 0, Math.PI * .5);
-      sphere.material = new THREE.MeshBasicMaterial({color: 0x000000});
+      sphere.material = new THREE.MeshBasicMaterial({color: 0x090909});
       sphere.material.side = BackSide;
       sphere.name = "A" + sphere.name;
-      this.generateSystem(sphere);
-
+      
+      if(this.orbitalBodies.get(Number.parseInt(sphere.name.split('%')[1])).length > 0){
+        this.generateSavedSystem(sphere.name.split('%')[1]);
+      } else {
+        this.generateSystem(sphere, Number.parseInt(sphere.name.split('%')[1]));
+      }
+        
       // var fogGeometry = new THREE.SphereGeometry(2, 24, 24);
       // const fogMaterial = new THREE.ShaderMaterial( {
       //   uniforms: this.uniforms,
@@ -669,12 +936,12 @@ export class SphereMapComponent implements OnInit {
     }
   }
 
-  generateSystem(sphere:THREE.Mesh){
+  generateSystem(sphere:THREE.Mesh, sphereId: Number){
     var center = sphere.position;
     var stars = MathUtils.randInt(1, 3);
     var orbits = MathUtils.randInt(1, 9);
-    this.generateStars(center, stars);
-    this.generateBodies(center, orbits);
+    this.generateStars(center, stars, sphereId);
+    this.generateBodies(center, orbits, sphereId);
 
     //var geometry = new THREE.SphereGeometry(THREE.MathUtils.randFloat(.001, .003), 24, 24);
     // var geometry = new THREE.CircleGeometry(.5, 32);
@@ -688,19 +955,23 @@ export class SphereMapComponent implements OnInit {
     // this.scene.add(plate);
   }
 
-  generateStars(center:THREE.Vector3, total:number){
+  generateStars(center:THREE.Vector3, total:number, sphereId: Number){
     for(var i = 0; i < total; i++){
-
+      var theta = 0;
+      var r = 0;
+      var x = 0;
+      var y = 0;
+      var z = 0;
       if (total > 1){
-        var theta = Math.PI * 2;
-        var r = .04;
-        var x = (r * Math.cos(theta * ((1+i)/total))) + center.x;
-        var y = center.y;
-        var z = (r * Math.sin(theta * ((1+i)/total))) + center.z;
+        theta = Math.PI * 2;
+        r = .04;
+        x = (r * Math.cos(theta * ((1+i)/total))) + center.x;
+        y = center.y;
+        z = (r * Math.sin(theta * ((1+i)/total))) + center.z;
       } else {
-        var x = center.x;
-        var y = center.y;
-        var z = center.z;
+        x = center.x;
+        y = center.y;
+        z = center.z;
       }
 
       var geometry = new THREE.SphereGeometry(THREE.MathUtils.randFloat(.01 * (3/total), .03 * (3/total)), 24, 24);
@@ -712,12 +983,23 @@ export class SphereMapComponent implements OnInit {
       star.position.y = y;
       star.position.z = z;
       star.name = 'G\%' + i;
+      var orbitalBody: OrbitalBody = new OrbitalBody();
+      orbitalBody.name = star.name;
+      orbitalBody.orbital_distance = r;
+      orbitalBody.orbital_offset = theta;
+      orbitalBody.type = 3;
+      orbitalBody.color = star.material.color.getHexString();
+
+      var tempList = this.orbitalBodies.get(sphereId);
+      tempList.push(orbitalBody);
+      this.orbitalBodies.set(sphereId, tempList);
+      this.mappingService.saveOrbitalBody(orbitalBody, sphereId);
       this.scene.add(star);
-      this.selectedSphere.children.push(star);
+      //this.selectedSphere.children.push(star);
     }
   }
 
-  generateBodies(center:THREE.Vector3, total:number){
+  generateBodies(center:THREE.Vector3, total:number, sphereId: Number){
     for(var i = 0; i < 9; i++){
       var theta = Math.PI * 2 * MathUtils.randFloat(0,1);
       var r = .1 + ((i/9)*.4);
@@ -733,8 +1015,30 @@ export class SphereMapComponent implements OnInit {
       body.position.y = y;
       body.position.z = z;
       body.name = 'B\%' + i;
+
+      var orbitalBody: OrbitalBody = new OrbitalBody();
+      orbitalBody.name = body.name;
+      orbitalBody.orbital_distance = r;
+      orbitalBody.orbital_offset = theta;
+      orbitalBody.type = 6;
+      orbitalBody.color = body.material.color.getHexString();
+
+      var tempList = this.orbitalBodies.get(sphereId);
+      this.orbitalBodies.set(sphereId, tempList);
+      this.mappingService.saveOrbitalBody(orbitalBody, sphereId);
       this.scene.add(body);
-      this.selectedSphere.children.push(body);
+      //this.selectedSphere.children.push(body);
+    }
+  }
+
+  generateSavedSystem(id: string){
+    console.log('adding bodies to scene for id: ' + id);
+    var bodies = this.orbitalBodies.get(Number.parseInt(id));
+    console.log(bodies);
+    console.log(bodies.length);
+    for(var i = 0; i<bodies.length; i++){
+      console.log('testing!');
+      this.scene.add(bodies[i]);
     }
   }
 
